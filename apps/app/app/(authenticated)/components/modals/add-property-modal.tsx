@@ -19,6 +19,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "@repo/design-system/hooks/use-toast"
 import { ScrollArea } from "@repo/design-system/components/ui/scroll-area"
 import { addProperty } from "@/app/actions/properties/queries"
+import { Card } from "@repo/design-system/components/ui/card"
+import { Separator } from "@repo/design-system/components/ui/separator"
 
 
 
@@ -35,50 +37,41 @@ export function AddPropertyModal({ open, onOpenChange }: AddPropertyModalProps) 
         setLoading(true)
 
         const formData = new FormData(e.currentTarget);
-        const address = formData.get('address') as string;
-
-        // Validate required fields
-        if (!address || address.trim() === "") {
-            toast({
-                title: "Error",
-                description: "La dirección es un campo requerido",
-                variant: "destructive",
-            });
-            setLoading(false);
-            return;
-        }
 
         const data = {
-            address: address,
+            address: formData.get('address') as string,
             city: formData.get('city') as string,
-            state: formData.get('state') as string | null,
-            zipCode: formData.get('zipCode') as string | null,
+            state: formData.get('state') as string || null,
+            zipCode: formData.get('zipCode') as string || null,
             country: 'Chile',
-            propertyType: formData.get('propertyType') as string,
-            status: formData.get('status') as string,
-            listingPrice: formData.get('listingPrice') ? Number(formData.get('listingPrice')) : null,
-            bedrooms: formData.get('bedrooms') ? Number(formData.get('bedrooms')) : null,
-            bathrooms: formData.get('bathrooms') ? Number(formData.get('bathrooms')) : null,
-            squareFeet: formData.get('squareFeet') ? Number(formData.get('squareFeet')) : null,
-            lotSize: formData.get('lotSize') ? Number(formData.get('lotSize')) : null,
-            yearBuilt: formData.get('yearBuilt') ? Number(formData.get('yearBuilt')) : null,
-            description: formData.get('description') as string | null,
-            features: formData.get('features') as string | null,
+            propertyType: formData.get('propertyType') as string || 'house',
+            status: formData.get('status') as string || 'Available',
+            listingPrice: formData.get('listingPrice') ? parseFloat(formData.get('listingPrice') as string) : null,
+            bedrooms: formData.get('bedrooms') ? parseInt(formData.get('bedrooms') as string) : null,
+            bathrooms: formData.get('bathrooms') ? parseFloat(formData.get('bathrooms') as string) : null,
+            squareFeet: formData.get('squareFeet') ? parseFloat(formData.get('squareFeet') as string) : null,
+            lotSize: formData.get('lotSize') ? parseFloat(formData.get('lotSize') as string) : null,
+            yearBuilt: formData.get('yearBuilt') ? parseInt(formData.get('yearBuilt') as string) : null,
+            description: formData.get('description') as string || null,
+            features: formData.get('features') as string || null,
         };
 
         try {
             const result = await addProperty(data);
+
             if (result.success) {
-                onOpenChange(false);
                 toast({
-                    title: "Propiedad agregada exitosamente",
-                    description: "La nueva propiedad ha sido agregada al inventario.",
+                    title: "¡Éxito!",
+                    description: "La propiedad ha sido agregada correctamente",
                 });
+                onOpenChange(false);
+            } else {
+                throw new Error(result.error);
             }
         } catch (error) {
             toast({
                 title: "Error",
-                description: "Hubo un error al agregar la propiedad",
+                description: error instanceof Error ? error.message : "Error al agregar la propiedad",
                 variant: "destructive",
             });
         } finally {
@@ -92,128 +85,132 @@ export function AddPropertyModal({ open, onOpenChange }: AddPropertyModalProps) 
                 <div className="mx-auto w-full max-w-lg">
                     <DrawerHeader>
                         <DrawerTitle className="text-xl">Agregar Nueva Propiedad</DrawerTitle>
-                        <DrawerDescription>Ingrese los detalles de la propiedad para agregarla al inventario.</DrawerDescription>
+                        <DrawerDescription>Complete los detalles básicos de la propiedad</DrawerDescription>
                     </DrawerHeader>
                     <form onSubmit={handleSubmit} className="flex flex-col h-[calc(100vh-10rem)]">
                         <ScrollArea className="flex-1 px-4">
-                            <div className="grid gap-6 pb-6">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="address" className="text-sm font-medium">Dirección</Label>
-                                    <Input id="address" placeholder="Av. Principal 123" required className="h-10" />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="city">Ciudad</Label>
-                                        <Input id="city" placeholder="Santiago" required />
+                            <div className="space-y-6 pb-6">
+                                <Card className="p-4 space-y-4">
+                                    <h3 className="font-semibold">Información Básica</h3>
+                                    <Separator />
+                                    <div className="space-y-4">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="address">Dirección*</Label>
+                                            <Input id="address" name="address" placeholder="Av. Principal 123" required />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="city">Ciudad*</Label>
+                                                <Input id="city" name="city" placeholder="Santiago" required />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="state">Región</Label>
+                                                <Input id="state" name="state" placeholder="Metropolitana" />
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="state">Región</Label>
-                                        <Input id="state" placeholder="Metropolitana" required />
+                                </Card>
+
+                                <Card className="p-4 space-y-4">
+                                    <h3 className="font-semibold">Detalles de la Propiedad</h3>
+                                    <Separator />
+                                    <div className="space-y-4">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="propertyType">Tipo*</Label>
+                                                <Select name="propertyType" defaultValue="house" required>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Seleccionar" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="house">Casa</SelectItem>
+                                                        <SelectItem value="apartment">Departamento</SelectItem>
+                                                        <SelectItem value="commercial">Comercial</SelectItem>
+                                                        <SelectItem value="land">Terreno</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="status">Estado*</Label>
+                                                <Select name="status" defaultValue="Available" required>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Seleccionar" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="Available">Disponible</SelectItem>
+                                                        <SelectItem value="Under Contract">En Contrato</SelectItem>
+                                                        <SelectItem value="Sold">Vendida</SelectItem>
+                                                        <SelectItem value="Off Market">Fuera de Mercado</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="listingPrice">Precio (CLP)*</Label>
+                                            <Input
+                                                id="listingPrice"
+                                                name="listingPrice"
+                                                type="number"
+                                                placeholder="150000000"
+                                                required
+                                            />
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="zipCode">Código Postal</Label>
-                                        <Input id="zipCode" placeholder="7550000" />
+                                </Card>
+
+                                <Card className="p-4 space-y-4">
+                                    <h3 className="font-semibold">Características</h3>
+                                    <Separator />
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="bedrooms">Dormitorios</Label>
+                                            <Input id="bedrooms" name="bedrooms" type="number" placeholder="3" />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="bathrooms">Baños</Label>
+                                            <Input id="bathrooms" name="bathrooms" type="number" step="0.5" placeholder="2" />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="squareFeet">M² Construidos</Label>
+                                            <Input id="squareFeet" name="squareFeet" type="number" placeholder="120" />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="lotSize">M² Terreno</Label>
+                                            <Input id="lotSize" name="lotSize" type="number" placeholder="200" />
+                                        </div>
                                     </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="country">País</Label>
-                                        <Input id="country" defaultValue="Chile" disabled />
+                                </Card>
+
+                                <Card className="p-4 space-y-4">
+                                    <h3 className="font-semibold">Descripción</h3>
+                                    <Separator />
+                                    <div className="space-y-4">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="description">Descripción General</Label>
+                                            <Textarea
+                                                id="description"
+                                                name="description"
+                                                placeholder="Describa la propiedad..."
+                                                className="min-h-[100px]"
+                                            />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="features">Características Destacadas</Label>
+                                            <Textarea
+                                                id="features"
+                                                name="features"
+                                                placeholder="Ej: Piscina, Jardín, Estacionamiento..."
+                                                className="min-h-[100px]"
+                                            />
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="propertyType">Tipo de Propiedad</Label>
-                                    <Select>
-                                        <SelectTrigger id="propertyType">
-                                            <SelectValue placeholder="Seleccionar tipo" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="house">Casa</SelectItem>
-                                            <SelectItem value="apartment">Departamento</SelectItem>
-                                            <SelectItem value="condo">Condominio</SelectItem>
-                                            <SelectItem value="commercial">Comercial</SelectItem>
-                                            <SelectItem value="land">Terreno</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="status">Estado</Label>
-                                    <Select defaultValue="available">
-                                        <SelectTrigger id="status">
-                                            <SelectValue placeholder="Seleccionar estado" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="available">Disponible</SelectItem>
-                                            <SelectItem value="under-contract">En Contrato</SelectItem>
-                                            <SelectItem value="sold">Vendida</SelectItem>
-                                            <SelectItem value="off-market">Fuera de Mercado</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="listingPrice">Precio de Lista (CLP)</Label>
-                                        <Input id="listingPrice" type="number" placeholder="150000000" required />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="yearBuilt">Año Construcción</Label>
-                                        <Input id="yearBuilt" type="number" placeholder="2020" />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="bedrooms">Dormitorios</Label>
-                                        <Input id="bedrooms" type="number" placeholder="3" />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="bathrooms">Baños</Label>
-                                        <Input id="bathrooms" type="number" step="0.5" placeholder="2" />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="squareFeet">Metros Cuadrados Construidos</Label>
-                                        <Input id="squareFeet" type="number" placeholder="120" />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="lotSize">Metros Cuadrados Terreno</Label>
-                                        <Input id="lotSize" type="number" placeholder="200" />
-                                    </div>
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="features">Características</Label>
-                                    <Textarea
-                                        id="features"
-                                        placeholder="Ejemplo: Piscina, Jardín, Estacionamiento, etc."
-                                    />
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="description">Descripción</Label>
-                                    <Textarea
-                                        id="description"
-                                        placeholder="Descripción detallada de la propiedad..."
-                                    />
-                                </div>
+                                </Card>
                             </div>
                         </ScrollArea>
-                        <DrawerFooter className="pt-2">
-                            <div className="flex flex-col gap-3 w-full">
-                                <Button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="w-full"
-                                >
-                                    {loading ? "Agregando..." : "Agregar Propiedad"}
-                                </Button>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => onOpenChange(false)}
-                                    className="w-full"
-                                >
-                                    Cancelar
-                                </Button>
-                            </div>
+                        <DrawerFooter>
+                            <Button type="submit" disabled={loading}>
+                                {loading ? "Agregando..." : "Agregar Propiedad"}
+                            </Button>
                         </DrawerFooter>
                     </form>
                 </div>

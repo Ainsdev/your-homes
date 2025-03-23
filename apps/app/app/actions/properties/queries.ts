@@ -23,34 +23,35 @@ export type PropertyFormData = {
 };
 
 export async function addProperty(data: PropertyFormData) {
-  const session = await auth();
-  if (!session?.userId) throw new Error("Unauthorized");
-  const userId = session.userId;
+  try {
+    const session = await auth();
+    if (!session?.userId) throw new Error("Unauthorized");
+    const userId = session.userId;
 
-  const result = await database.insert(property).values({
-    userId: userId,
-    address: data.address,
-    city: data.city,
-    state: data.state,
-    zipCode: data.zipCode,
-    country: data.country,
-    propertyType: data.propertyType,
-    status: data.status,
-    listingPrice: data.listingPrice,
-    bedrooms: data.bedrooms,
-    bathrooms: data.bathrooms,
-    squareFeet: data.squareFeet,
-    lotSize: data.lotSize,
-    yearBuilt: data.yearBuilt,
-    description: data.description,
-    features: data.features,
-    createdAt: Math.floor(Date.now() / 1000),
-    updatedAt: Math.floor(Date.now() / 1000),
-  });
+    const propertyData = {
+      userId,
+      ...data,
+      createdAt: Math.floor(Date.now() / 1000),
+      updatedAt: Math.floor(Date.now() / 1000),
+      images: null,
+      documents: null,
+      soldDate: null,
+      soldPrice: null,
+      listingDate: Math.floor(Date.now() / 1000),
+      ownerId: null,
+    };
 
-  // Return a plain object instead of the database result
-  return {
-    success: true,
-    propertyId: result.lastInsertRowid
-  };
+    const result = await database.insert(property).values(propertyData);
+
+    return {
+      success: true,
+      propertyId: result.lastInsertRowid
+    };
+  } catch (error) {
+    console.error('Error adding property:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    };
+  }
 }

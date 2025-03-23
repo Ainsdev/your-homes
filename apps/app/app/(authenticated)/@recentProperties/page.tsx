@@ -2,12 +2,14 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@repo
 import { RecentProperties } from '../components/dashboard/recent-properties';
 import { Suspense } from 'react';
 
+export const revalidate = 30; // Revalidate every 30 seconds
+
 export default function RecentPropertiesPage() {
     return (
         <Card className="lg:col-span-4">
             <CardHeader>
-                <CardTitle>Recent Properties</CardTitle>
-                <CardDescription>Recently added or updated properties</CardDescription>
+                <CardTitle>Propiedades Recientes</CardTitle>
+                <CardDescription>Propiedades agregadas o actualizadas recientemente</CardDescription>
             </CardHeader>
             <CardContent>
                 <Suspense fallback={<RecentPropertiesLoading />}>
@@ -33,4 +35,4 @@ function RecentPropertiesLoading() {
             ))}
         </div>
     );
-} 
+}

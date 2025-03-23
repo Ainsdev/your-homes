@@ -9,6 +9,7 @@ import { PostHogIdentifier } from './components/posthog-identifier';
 import KBar from './components/kbar';
 import AppSidebar from './components/app-sidebar';
 import Header from './components/header';
+import { Toaster } from "@repo/design-system/components/ui/toaster"  // Update this import
 
 type AppLayoutProperties = {
   children: ReactNode;
@@ -78,6 +79,7 @@ const AppLayout = async ({
           <PostHogIdentifier />
         </SidebarProvider>
       </KBar>
+      <Toaster />
     </NotificationsProvider>
   );
 };
