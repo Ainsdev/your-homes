@@ -4,27 +4,22 @@
   "main": "./index.ts",
   "types": "./index.ts",
   "scripts": {
-    "analyze": "prisma generate --no-hints --schema=./prisma/schema.prisma",
-    "build": "prisma generate --no-hints --schema=./prisma/schema.prisma",
-    "clean": "git clean -xdf .cache .turbo dist node_modules",
-    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+    "db:migrate": "cd packages/database && npx drizzle-kit migrate",
+    "db:generate": "cd packages/database && npx drizzle-kit generate",
+    "db:pull": "cd packages/database && npx drizzle-kit pull"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^0.10.4",
-    "@prisma/adapter-neon": "^6.3.1",
-    "@prisma/client": "6.3.1",
+    "@libsql/client": "^0.14.0",
     "@t3-oss/env-nextjs": "^0.12.0",
+    "drizzle-orm": "^0.40.0",
     "server-only": "^0.0.1",
     "undici": "^7.3.0",
-    "ws": "^8.18.0",
     "zod": "^3.24.2"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
     "@types/node": "22.13.4",
-    "@types/ws": "^8.5.14",
-    "bufferutil": "^4.0.9",
-    "prisma": "6.3.1",
+    "drizzle-kit": "^0.30.5",
     "typescript": "^5.7.3"
   }
 }

@@ -1,7 +1,6 @@
 import withBundleAnalyzer from '@next/bundle-analyzer';
 
-// @ts-expect-error No declaration file
-import { PrismaPlugin } from '@prisma/nextjs-monorepo-workaround-plugin';
+
 import type { NextConfig } from 'next';
 
 const otelRegex = /@opentelemetry\/instrumentation/;
@@ -38,11 +37,34 @@ export const config: NextConfig = {
   webpack(config, { isServer }) {
     if (isServer) {
       config.plugins = config.plugins || [];
-      config.plugins.push(new PrismaPlugin());
+      // More comprehensive externals configuration for libSQL
+      config.externals = [...(config.externals || []), 
+        '@libsql/client', 
+        '@libsql/win32-x64-msvc',
+        '@libsql/linux-x64-gnu',
+        '@libsql/linux-x64-musl',
+        '@libsql/darwin-x64',
+        '@libsql/darwin-arm64'
+      ];
+    } else {
+      // For client-side, add fallbacks for node modules
+      config.resolve = config.resolve || {};
+      config.resolve.fallback = {
+        ...(config.resolve.fallback || {}),
+        fs: false,
+        path: false,
+        os: false,
+      };
     }
-
+    
+    // Add alias for @libsql/client to use the web version
+    config.resolve = config.resolve || {};
+    config.resolve.alias = {
+      ...(config.resolve.alias || {}),
+      '@libsql/client': '@libsql/client/web'
+    };
+    
     config.ignoreWarnings = [{ module: otelRegex }];
-
     return config;
   },
 
